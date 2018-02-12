@@ -12,3 +12,20 @@
 [12-02-2018 13:00:51]:amount `3`, text ``
 [12-02-2018 13:00:52]:>>> Searching sounds at: https://www.myinstants.com/index/br
 [12-02-2018 13:00:53]:>>> Searching images at: https://www.google.com.br/search?source=imghp&sout=1&q=Que%20del%C3%ADcia%20cara&tbm=isch
+
+[LOG FILE]
+[12-02-2018 13:34:49]:[SERVER IS ONLINE]
+[12-02-2018 13:34:49]:
+
+>>> [André Luiz]: "/start"
+[12-02-2018 13:38:21]:
+
+>>> [André Luiz]: "/top a"
+[12-02-2018 13:38:21]:amount `3`, text `a`
+[12-02-2018 13:38:21]:>>> Searching sounds at: https://www.myinstants.com/search/?name=a
+[12-02-2018 13:38:22]:>>> Searching images at: https://www.google.com.br/search?source=imghp&sout=1&q=YEAH%20&tbm=isch
+[12-02-2018 13:38:27]:
+
+>>> [André Luiz]: "a"
+[12-02-2018 13:38:28]:>>> Searching sounds at: https://www.myinstants.com/search/?name=a
+[12-02-2018 13:38:29]:>>> Searching images at: https://www.google.com.br/search?source=imghp&sout=1&q=YEAH%20&tbm=isch

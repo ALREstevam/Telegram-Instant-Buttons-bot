@@ -1,5 +1,5 @@
 {
-  "telegramBotToken": "BOT_API_TOKEN",
+  "telegramBotToken": "414842811:AAH8PsO7R7l31CNC2oZhfvZW2DpQ78ewZQo",
   "logging": {
     "logfilePath": "logfile.log",
     "logType": "both"
