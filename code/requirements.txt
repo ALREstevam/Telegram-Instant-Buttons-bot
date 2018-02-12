@@ -1,0 +1,5 @@
+beautifulsoup4==4.6.0
+emoji==0.4.5
+html5lib==0.999
+telepot==12.5
+urllib3==1.22

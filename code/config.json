@@ -1,5 +1,5 @@
 {
-  "telegramBotToken": "API-TOKEN-HERE",
+  "telegramBotToken": "BOT-TOKEN-HERE",
   "logging": {
     "logfilePath": "logfile.log",
     "logType": "both"

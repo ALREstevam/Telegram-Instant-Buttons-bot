@@ -3,7 +3,6 @@ import requests
 from pprint import pprint
 from urllib.parse import quote
 import re
-import googleimagesearch
 from Logger import lggr
 
 class MyInstantsWebScrapping:

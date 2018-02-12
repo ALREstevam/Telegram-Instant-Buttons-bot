@@ -61,7 +61,7 @@ def talkFunction(msg):
 
 
             text = matches.group(2)
-            lggr.logPrint('amount `{}`, text `{}`'.format(amount, text))
+            #lggr.logPrint('amount `{}`, text `{}`'.format(amount, text))
 
             if amount > 50:
                 amount = 50
@@ -109,23 +109,6 @@ def talkFunction(msg):
     except Exception as ex:
         bot.sendText('😭 Oh no, Something went wrong.', chatId)
         traceback.print_exc()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
