@@ -1,15 +1,20 @@
-from Bot import TelegramMyInstantsBot as TmiBot
-from pprint import pprint
+print('STARTING')
+from MiBot import MyInsBot as TmiBot
 import load_configs as cnfg
-import re
 from WebScrapping import MyInstantsWebScrapping as MiWb
+from pprint import pprint
+import re
 import telepot
 import traceback
 import urllib3
-from Logger import lggr
+import os
+from Logger import lgr
 
 bot = TmiBot(cnfg.telegram_bot_token)
 scrap = MiWb()
+
+lgr.log('ONLINE')
+
 
 def convertCountryName(orig):
     if orig == 'pt-br':
@@ -22,101 +27,99 @@ def talkFunction(msg):
     chatId = msg['chat']['id']
 
     try:
+        pprint(msg)
+        msgType = telepot.glance(msg)[0]
+        print(msgType)
+
         #if the message type is not a text (sticker, image, audio, ...)
-        if telepot.glance(msg)[0] != 'text':
-            bot.sendText('😉 Please, send-me some text.', chatId)
+        if msgType not in ['text', 'sticker']:
+            bot.sendTip(chatId, 'Please, send-me some text.')
             return
+
+
         data = bot.glanceMsg(msg)
+        print('\n\n>>> [{}]: "{}"'.format(data['fullname'], data['txt']))
+        lgr.log('[{}]: "{}"'.format(data['fullname'], data['txt']))
 
-        lggr.logPrint('\n\n>>> [{}]: "{}"'.format(data['fullname'], data['txt']))
 
-        #/start
-        if data['txt'] == '/start':
-            presentationText = [
-                "👋 <b>Hi {}</b>".format(data['first_name']),
-                "🔉 Welcome to <b>{}</b> 🎧".format(bot.botName),
-                "😄 I am your sound finder tool in myinstants. Enter any terms that I will bring you the top three results. 👍",
-                "You can also use:",
-                "<code>/top</code> to get the top three results for your language",
-                "<code>/top(number)</code> to get the top <code>number</code> results for your language",
-                "<code>/top(number) (keyword)</code> to get the top <code>number</code> results when searching for <code>keywords</code>",
-                "<i>This page is not official of myinstants.com and all data used is publicly available on their site.</i>"
-            ]
-            for msg in presentationText:
-                bot.sendText(msg, chatId)
+        #/hi /hello /wakeup
+        if data['txt'] in ['/hi', '/hello', '/wakeup']:
+            bot.sendText(chatId, '👋 Hello there!')
+
+        if data['txt'] == '/except':
+            bot.sendText(chatId, 'Testing exeption handling.')
+            raise Exception
+
+        # /start
+        elif data['txt'] == '/start':
+            bot.sendStartMessage(chatId, data['first_name'])
+
 
         elif '/top' in data['txt']:
             pattern = re.compile(r"/top\s?(\d*)?\s?([A-Za-z À-ú0-9-]*)?")
             matches = pattern.match(data['txt'])
-            country = convertCountryName(data['lang'])
 
-            amount = 3
+            if matches is None:
+                bot.sendSadMsg(chatId, 'Command <code>/top</code> could not be processed.')
+                return
 
-            if not matches.group(1).isdigit() and not matches.group(1) == '':
-                bot.sendText("😶 I do not understand how many sounds you want, I'll bring you three.", chatId)
-            elif matches.group(1) == '':
-                pass
-            else:
-                amount = int(matches.group(1))
+            text = '' if matches.group(2) is None else str(matches.group(2))
+            amount = 0 if matches.group(1) is None or not matches.group(1).isnumeric() else int(matches.group(1))
 
+            if amount > 45:
+                amount = 45
 
-            text = matches.group(2)
-            #lggr.logPrint('amount `{}`, text `{}`'.format(amount, text))
-
-            if amount > 50:
-                amount = 50
-
-            #/top
-            if data['txt'] == '/top':
-                bot.sendText('🔍🤔 <b>Searching top three results for region:</b> {}'.format(data['lang']),chatId)
-                answ = scrap.getTopByCountry(country)
-                bot.sendSounds2(answ, chatId, '', scrap.getUrlForCounty(country))
+            if amount < 0:
+                amount = 0
 
             #/top <txt>
-            elif str(amount) == '' and str(text) != '':
-                bot.sendText('🔍🤔 <b>Searching top 5 results for </b>{}'.format(text), chatId)
-                answ = scrap.searchByKeyWord(str(text), 5)
-                bot.sendSounds2(answ, chatId, text, scrap.getUrlForKeyword(text))
+            if amount == 0 and text != '':
+                bot.sendSearchMsg(chatId, '<b>Searching top 5 results for </b>{}'.format(text))
+                answ = scrap.searchByKeyWord(text, 5)
+                bot.sendSoundsWithUrl(chatId, answ, text, scrap.getUrlForKeyword(text))
 
             #/top <n>
-            elif str(amount) != '' and str(text) == '':
-                bot.sendText('🔍🤔 <b>Searching top {} results</b>'.format(int(amount)), chatId)
-                answ = scrap.getTopByCountry(country, int(amount))
-                bot.sendSounds2(answ, chatId, '', scrap.getUrlForCounty(country))
+            elif amount != 0 and text == '':
+                country = convertCountryName(data['lang'])
+                bot.sendSearchMsg(chatId, '<b>Searching top {} results</b>'.format(amount))
+                answ = scrap.getTopByCountry(country, amount)
+                bot.sendSoundsWithUrl(chatId, answ, '', scrap.getUrlForCounty(country))
 
             #/top <n> <txt>
-            elif str(amount) != '' and str(text) != '':
-                bot.sendText('🔍🤔 <b>Searching top {} results for </b>{}'.format(amount, text),
-                             chatId)
-                answ = scrap.searchByKeyWord(str(text), int(amount))
-                bot.sendSounds2(answ, chatId, text, scrap.getUrlForKeyword(text))
+            elif amount != 0 and text != '':
+                bot.sendSearchMsg(chatId, '<b>Searching top {} results for </b>{}'.format(amount, text))
+                answ = scrap.searchByKeyWord(text, amount)
+                bot.sendSoundsWithUrl(chatId, answ, text, scrap.getUrlForKeyword(text))
 
-            #/top ?
+            #/top
+            #if amount == 0 and text == '':
             else:
-                bot.sendText('<b>🔍🤔 Searching for:</b> {}'.format(text), chatId)
-                bot.sendSounds2(chatId, None, text, scrap.getUrlForKeyword(text))
+                country = convertCountryName(data['lang'])
+                bot.sendSearchMsg(chatId, '<b>Searching top three results for region:</b> {}'.format(country))
+                answ = scrap.getTopByCountry(country)
+                bot.sendSoundsWithUrl(chatId, answ, '', scrap.getUrlForCounty(country))
 
         #<txt>
         else:
-            bot.sendText('🔍🤔 <b>Searching for:</b> {}'.format(data['txt']), chatId)
+            bot.sendSearchMsg(chatId, '<b>Searching for:</b> {}'.format(data['txt']))
             answ = scrap.searchByKeyWord(data['txt'])
-            bot.sendSounds2(answ, chatId, data['txt'], scrap.getUrlForKeyword(data['txt']))
+            bot.sendSoundsWithUrl(chatId, answ, data['txt'], scrap.getUrlForKeyword(data['txt']))
 
     except urllib3.exceptions.ReadTimeoutError:
-        bot.sendText('😭 Oh no, the connection timed out, please try again.', chatId)
+        bot.sendErrorMsg(chatId, 'Oh no, the connection timed out, please try again.')
         traceback.print_exc()
+        bot.sendSticker(chatId, 'CAADBAADGgMAAnMaRAVVEiMGXFjhEQI')
     
     except Exception as ex:
-        bot.sendText('😭 Oh no, Something went wrong.', chatId)
+        bot.sendErrorMsg(chatId, 'Oh no, Something went wrong.')
         traceback.print_exc()
-
-
+        bot.sendSticker(chatId, 'CAADBAAD0wEAAnMaRAVCtzF6SHO6dwI')
 
 
 
 
 bot.setTalkHandleFunction(talkFunction)
-lggr.logPrint('[SERVER IS ONLINE]')
+print('[SERVER IS ONLINE]')
 while True:
     cmd = input('<<<: ')
 
@@ -125,5 +128,8 @@ while True:
     elif cmd == ' ':
         pass
     else:
-        lggr.logPrint('>>>: invalid command.')
+        try:
+            print(eval(str(cmd)))
+        except:
+            print('Invalid command')
 

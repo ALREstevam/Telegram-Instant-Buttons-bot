@@ -3,7 +3,6 @@ import requests
 from pprint import pprint
 from urllib.parse import quote
 import re
-from Logger import lggr
 
 class MyInstantsWebScrapping:
     def __init__(self):
@@ -11,7 +10,7 @@ class MyInstantsWebScrapping:
         self.searchLinkBasis = self.linkBasis + '/search/?name='
 
     def search(self, completeLink, maxresults):
-        lggr.logPrint('>>> Searching sounds at: ' + completeLink)
+        print('>>> Searching sounds at: ' + completeLink)
         page = requests.get(completeLink)
         soup = BeautifulSoup(page.content, 'html.parser')
         instants = soup.find_all('div', class_='instant')
@@ -53,7 +52,7 @@ class DogPileImagesWebScrapping():
     def searchFirst(self, query):
         query = quote(querySimplify(query), safe='')
         link = 'http://www.dogpile.com/dogpilecontrol/search/images?q={}'.format(query)
-        lggr.logPrint('>>> Searching images at: {}'.format(link))
+        print('>>> Searching images at: {}'.format(link))
         page = requests.get(link)
         soup = BeautifulSoup(page.content, 'html.parser')
 
@@ -72,7 +71,7 @@ class GoogleImagesWebScrapping:
         query = quote(querySimplify(query), safe='')
         link = 'https://www.google.com.br/search?source=imghp&sout=1&q={}&tbm=isch'.format(query)
 
-        lggr.logPrint('>>> Searching images at: {}'.format(link))
+        print('>>> Searching images at: {}'.format(link))
         page = requests.get(link)
         soup = BeautifulSoup(page.content, 'html.parser')
 
@@ -97,7 +96,7 @@ class generalImageScrapper:
         query = quote(querySimplify(query), safe='')
         link = self.site.format(query)
 
-        lggr.logPrint('>>> Searching images at: {}'.format(link))
+        print('>>> Searching images at: {}'.format(link))
         page = requests.get(link)
         soup = BeautifulSoup(page.content, 'html.parser')
 
@@ -111,5 +110,46 @@ class generalImageScrapper:
 def querySimplify(query):
     query = re.sub('[^A-Za-z0-9 À-úçÇ]+', '', query)
     return query
+
+def wordSimplify(word):
+    replaceTable = [['áàãâ', 'a'], ['éèê', 'e'], ['íìî', 'i'], ['óòõô', 'o'], ['úùû', 'u'], ['ç', 'c']]
+    word = word.lower()
+
+    for line in replaceTable:
+        for char in list(line[0]):
+            word = word.replace(char, line[1])
+
+    word = re.sub('[^A-Za-z0-9 À-úçÇ_-]+', '', word)
+
+    return word
+
+
+
+
+
+
+
+
+
+class LocalSoundSearch:
+    def __init__(self, data):
+        self.soundsData = data
+
+    def search(self, keyword, maxResults=3):
+        answer = []
+        count = 0
+        for soundInfo in self.soundsData['sounds']:
+            if keyword.lower() in soundInfo['sound_name'].lower():
+                answer.append(count)
+            count += 1
+
+            if len(answer) == maxResults:
+                return answer
+
+        return answer
+
+
+
+
 
 
