@@ -58,3 +58,7 @@ class GeneralTelegramBotWrapper:
             'txt': txt,
             'msgType': msgType
         }
+
+    def sendMessages(self, chatid, messages):
+        for msg in messages:
+            self.sendText(chatid, msg)
